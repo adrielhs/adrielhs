@@ -1,9 +1,16 @@
 <h1 align="center">👨‍💻 Adriel Hipolito</h1>
 <p align="center">
-  <b>Full Stack Developer | Lifelong Learner | Problem Solver</b><br>
-  <a href="https://www.instagram.com/fx_adrielhipolit0/">📸 Instagram</a> • 
-  <a href="https://www.linkedin.com/in/adrielhipolito/">💼 LinkedIn</a> • 
-  <a href="https://github.com/adrielhs">💻 GitHub</a><br>
+  <a href="https://www.instagram.com/fx_adrielhipolit0/">
+    <img src="https://img.shields.io/badge/Instagram-E91E63?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram">
+  </a>
+  <a href="https://www.linkedin.com/in/adrielhipolito/">
+    <img src="https://img.shields.io/badge/LinkedIn-2196F3?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+  </a>
+  <a href="https://github.com/adrielhs">
+    <img src="https://img.shields.io/badge/GitHub-607D8B?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  </a>
+</p>
+</p>
   📫 <i>adriel.hipollitoo@gmail.com</i>
 </p>
 
