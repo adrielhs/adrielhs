@@ -1,4 +1,4 @@
-<h1 align="center">👨‍💻 Adriel Hipólito</h1>
+<h1 align="center">👨‍💻 Adriel Hipolito</h1>
 <p align="center">
   <b>Full Stack Developer | Lifelong Learner | Problem Solver</b><br>
   <a href="https://www.instagram.com/fx_adrielhipolit0/">📸 Instagram</a> • 
