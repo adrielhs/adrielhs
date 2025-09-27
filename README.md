@@ -1,4 +1,12 @@
-<h1 align="center">👨‍💻 Adriel Hipolito</h1>
+<h1 align="center">Hey 👋 What's Up?</h1>
+
+<p align="center">
+  👨‍💻 Developer | 🚀 Tech Enthusiast | 🧠 Lifelong Learner  
+</p>
+
+---
+
+### 👨‍💻 Adriel Hipolito
 
 <p align="center">
   <a href="https://www.instagram.com/fx_adrielhipolit0/">
@@ -35,6 +43,32 @@
 
 ### 🛠️ Tech Stack
 
+<div align="center">
+  <img src="https://skillicons.dev/icons?i=ts" height="60" alt="typescript logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=nextjs" height="60" alt="nextjs logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=tailwind" height="60" alt="tailwindcss logo" />
+  <img width="12" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/storybook/storybook-original.svg" height="60" alt="storybook logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=graphql" height="60" alt="graphql logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=go" height="60" alt="go logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=rust" height="60" alt="rust logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=nestjs" height="60" alt="nestjs logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=py" height="60" alt="python logo" />
+  <img width="12" />
+  <img src="https://skillicons.dev/icons?i=aws" height="60" alt="amazonwebservices logo" />
+</div>
+
+---
+
+### ⚙️ Tools, Frameworks & Languages
+
 #### 💡 Languages & Runtimes
 | ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) | ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) |
 |--|--|
@@ -59,17 +93,35 @@
 ---
 
 ### 📊 GitHub Activity
+
+<div align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=adrielhs&show_icons=true&theme=radical" height="150" alt="GitHub Stats" />
+  <img src="https://streak-stats.demolab.com?user=adrielhs&locale=en&mode=daily&theme=dracula&hide_border=false&border_radius=5&order=3" height="150" alt="Streak Stats" />
+</div>
+
+<div align="center">
+  <img src="https://github-profile-trophy.vercel.app?username=adrielhs&theme=dracula&column=-1&row=1&margin-w=8&margin-h=8&no-bg=false&no-frame=false&order=4" height="150" alt="Trophies" />
+</div>
+
+---
+
+### 🟡 Pacman Contributions
+
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=adrielhs&show_icons=true&theme=radical" alt="GitHub Stats">
+  <picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/adrielhs/adrielhs/output/pacman-contribution-graph-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/adrielhs/adrielhs/output/pacman-contribution-graph.svg">
+  <img alt="pacman contribution graph" src="https://raw.githubusercontent.com/adrielhs/adrielhs/output/pacman-contribution-graph.svg">
+</picture>
+
+###
 </p>
 
 ---
 
-### 🐍 Contributions
+### 🌐 Other Networks
+
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/adrielhs/adrielhs/output/github-contribution-grid-snake-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/adrielhs/adrielhs/output/github-contribution-grid-snake.svg">
-    <img alt="snake animation" src="https://raw.githubusercontent.com/adrielhs/adrielhs/output/github-contribution-grid-snake.svg">
-  </picture>
-</p>
+  <img src="https://img.shields.io/static/v1?message=LinkedIn&logo=linkedin&label=&color=0077B5&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="linkedin logo" />
+  <img src="https://img.shields.io/static/v1?message=Twitter&logo=twitter&label=&color=1DA1F2&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="twitter logo" />
+  <img src="https://img.shields.io/static/v1?message=Discord&logo=discord&label=&color=
