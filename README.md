@@ -67,19 +67,6 @@
 
 ---
 
-### 📊 GitHub Activity
-
-<div align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=adrielhs&show_icons=true&theme=radical" height="150" alt="GitHub Stats" />
-  <img src="https://streak-stats.demolab.com?user=adrielhs&locale=en&mode=daily&theme=dracula&hide_border=false&border_radius=5&order=3" height="150" alt="Streak Stats" />
-</div>
-
-<div align="center">
-  <img src="https://github-profile-trophy.vercel.app?username=adrielhs&theme=dracula&column=-1&row=1&margin-w=8&margin-h=8&no-bg=false&no-frame=false&order=4" height="150" alt="Trophies" />
-</div>
-
----
-
 ### 🟡 Pacman Contributions
 
 <p align="center">
