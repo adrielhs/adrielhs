@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 160" width="900" height="160">
+  <defs>
+    <style>
+      .node-label { font-family: 'Space Mono', 'Consolas', monospace; font-size: 10.5px; fill: #E0E7FF; text-anchor: middle; }
+      .node-sub   { font-family: 'Space Mono', 'Consolas', monospace; font-size: 8.5px; fill: #D4AF37; text-anchor: middle; }
+      .node-year  { font-family: 'Space Mono', 'Consolas', monospace; font-size: 8px; fill: #64748B; text-anchor: middle; }
+      .route      { fill: none; stroke: #D4AF37; stroke-width: 1.2; }
+    </style>
+
+    <!-- Arrow marker -->
+    <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#D4AF37" opacity="0.8"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="160" fill="#030305"/>
+
+  <!-- Top and bottom border lines -->
+  <line x1="0" y1="0"   x2="900" y2="0"   stroke="#1E293B" stroke-width="0.8"/>
+  <line x1="0" y1="159" x2="900" y2="159" stroke="#1E293B" stroke-width="0.8"/>
+
+  <!-- ── CONNECTING ROUTE LINES ── -->
+  <line x1="130" y1="81" x2="230" y2="81" class="route" marker-end="url(#arr)"/>
+  <line x1="330" y1="81" x2="430" y2="81" class="route" marker-end="url(#arr)"/>
+  <line x1="560" y1="81" x2="660" y2="81" class="route" marker-end="url(#arr)"/>
+
+  <!-- ── ANIMATED SIGNAL DOTS ── -->
+  <!-- Segment 1: Node 1 -> Node 2 -->
+  <circle cx="0" cy="0" r="3.5" fill="#8C1D18" opacity="0">
+    <animateMotion path="M 130 81 H 230" dur="3s" begin="0s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3s" begin="0s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Segment 2: Node 2 -> Node 3 (1s delay) -->
+  <circle cx="0" cy="0" r="3.5" fill="#8C1D18" opacity="0">
+    <animateMotion path="M 330 81 H 430" dur="3s" begin="1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Segment 3: Node 3 -> Node 4 (2s delay) -->
+  <circle cx="0" cy="0" r="3.5" fill="#8C1D18" opacity="0">
+    <animateMotion path="M 560 81 H 660" dur="3s" begin="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3s" begin="2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ── NODE 1: Projetos Iniciais ── -->
+  <rect x="30" y="60" width="100" height="42" fill="#0A0B10" stroke="#D4AF37" stroke-width="1.2" rx="2"/>
+  <text x="80" y="78" class="node-label">Projetos Iniciais</text>
+  <text x="80" y="93" class="node-year">2025·Q1</text>
+
+  <!-- ── NODE 2: Template Fastify ── -->
+  <rect x="230" y="60" width="100" height="42" fill="#0A0B10" stroke="#D4AF37" stroke-width="1.2" rx="2"/>
+  <text x="280" y="78" class="node-label">Template Fastify</text>
+  <text x="280" y="93" class="node-year">2026·Q1</text>
+
+  <!-- ── NODE 3: Humidity Sensor ── -->
+  <rect x="430" y="60" width="130" height="42" fill="#0A0B10" stroke="#D4AF37" stroke-width="1.2" rx="2"/>
+  <text x="495" y="78" class="node-label">Humidity Sensor</text>
+  <text x="495" y="93" class="node-year">2026·Q2</text>
+
+  <!-- ── NODE 4: Cassino Reverso ── -->
+  <rect x="660" y="56" width="120" height="50" fill="#0A0B10" stroke="#D4AF37" stroke-width="1.5" rx="2"/>
+  <text x="720" y="77" class="node-label" font-weight="bold">Cassino Reverso</text>
+  <text x="720" y="89" class="node-sub">Financial Education</text>
+  <text x="720" y="100" class="node-year">2026·Q4 ★</text>
+
+  <!-- ── SECTION LABEL ── -->
+  <text x="450" y="142" font-family="'Space Mono', 'Consolas', monospace" font-size="8" fill="#64748B" text-anchor="middle" letter-spacing="3">SIGNAL ROUTE // ARCHITECTURE EVOLUTION TIMELINE</text>
+</svg>

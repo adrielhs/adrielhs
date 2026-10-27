@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "routes": [
+    { "src": "/minigame/signal-route(.*)", "dest": "/minigame/signal-route/index.html" },
+    { "src": "/minigame/task-triage(.*)", "dest": "/minigame/task-triage/index.html" },
+    { "src": "/minigame/color-protocol(.*)", "dest": "/minigame/color-protocol/index.html" },
+    { "src": "/minigame/audio-breach(.*)", "dest": "/minigame/audio-breach/index.html" },
+    { "src": "/minigame(.*)", "dest": "/minigame/index.html" },
+    { "src": "/(.*)", "dest": "/minigame/index.html" }
+  ]
+}

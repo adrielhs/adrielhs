@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Triage // Backlog Control Room</title>
+  <style>
+    :root {
+      --bg: #030305;
+      --panel: #0A0B10;
+      --panel-elevated: #11131B;
+      --amber: #D4AF37;
+      --amber-dim: rgba(212, 175, 55, 0.15);
+      --ivory: #F5F0E8;
+      --crimson: #8C1D18;
+      --crimson-dim: rgba(140, 29, 24, 0.2);
+      --muted: #64748B;
+      --text: #E0E7FF;
+      --border: #1E293B;
+      --font-mono: 'Consolas', 'Space Mono', 'Courier New', monospace;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-mono);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      user-select: none;
+    }
+    .game-container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--panel);
+      border: 1px solid var(--amber);
+      padding: 28px 24px;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.85);
+      position: relative;
+    }
+    .brand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .brand-title {
+      color: var(--amber);
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      font-weight: bold;
+    }
+    .brand-sub {
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+      background: var(--panel-elevated);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+    }
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .hud-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .hud-val {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--amber);
+    }
+    .hud-val.ivory {
+      color: var(--ivory);
+    }
+    .timer-track {
+      width: 100%;
+      height: 6px;
+      background: #090B12;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%;
+      width: 100%;
+      background: var(--amber);
+      transition: width 0.1s linear, background-color 0.3s;
+    }
+    .timer-bar.warning {
+      background: var(--crimson);
+    }
+    .fall-zone {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      background: #05060A;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(212, 175, 55, 0.2);
+      pointer-events: none;
+    }
+    .task-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--panel-elevated);
+      cursor: pointer;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      border-left-width: 4px;
+      transition: outline 0.1s;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    .task-card.selected {
+      outline: 2px solid var(--ivory);
+      box-shadow: 0 0 15px rgba(245, 240, 232, 0.4);
+      z-index: 20 !important;
+    }
+    .task-card.priority-critical {
+      border-left-color: var(--crimson);
+      color: var(--ivory);
+      background: #140507;
+    }
+    .task-card.priority-high {
+      border-left-color: var(--amber);
+      color: var(--amber);
+      background: #141006;
+    }
+    .task-card.priority-medium {
+      border-left-color: var(--ivory);
+      color: var(--text);
+      background: #0D101C;
+    }
+    .task-card.priority-low {
+      border-left-color: var(--muted);
+      color: var(--muted);
+      background: #090B12;
+    }
+    .columns-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .priority-col {
+      background: #070910;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--border);
+      min-height: 150px;
+      padding: 10px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+    }
+    .priority-col:hover {
+      background: #0E1220;
+    }
+    .priority-col.col-critical {
+      border-top-color: var(--crimson);
+    }
+    .priority-col.col-high {
+      border-top-color: var(--amber);
+    }
+    .priority-col.col-medium {
+      border-top-color: var(--ivory);
+    }
+    .priority-col.col-low {
+      border-top-color: var(--muted);
+    }
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .col-title {
+      font-size: 0.72rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    .col-hotkey {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: #04050A;
+    }
+    .col-critical .col-title { color: var(--crimson); }
+    .col-high .col-title { color: var(--amber); }
+    .col-medium .col-title { color: var(--ivory); }
+    .col-low .col-title { color: var(--muted); }
+    .placed-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      max-height: 120px;
+    }
+    .placed-item {
+      font-size: 0.65rem;
+      padding: 4px 6px;
+      border-left: 2px solid;
+      background: #04050A;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .placed-item.correct {
+      border-left-color: var(--amber);
+      color: var(--ivory);
+    }
+    .placed-item.wrong {
+      border-left-color: var(--crimson);
+      color: var(--crimson);
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .feedback-msg {
+      letter-spacing: 1.5px;
+      min-height: 20px;
+      font-weight: bold;
+    }
+    .feedback-msg.correct { color: var(--amber); }
+    .feedback-msg.error { color: var(--crimson); }
+    .btn {
+      background: transparent;
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      padding: 10px 22px;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background: var(--amber);
+      color: var(--bg);
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    }
+    .btn-crimson {
+      border-color: var(--crimson);
+      color: var(--crimson);
+    }
+    .btn-crimson:hover {
+      background: var(--crimson);
+      color: var(--ivory);
+      box-shadow: 0 0 15px rgba(140, 29, 24, 0.4);
+    }
+    .btn-secondary {
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+    .btn-secondary:hover {
+      background: var(--muted);
+      color: var(--bg);
+    }
+    .screen {
+      text-align: center;
+      padding: 40px 16px;
+    }
+    .screen h2 {
+      color: var(--amber);
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+    .screen p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .briefing-box {
+      background: #06070E;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      margin: 0 auto 28px;
+      max-width: 640px;
+      text-align: left;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    .briefing-box strong {
+      color: var(--ivory);
+    }
+    .score-banner {
+      font-size: 3.2rem;
+      font-weight: bold;
+      color: var(--amber);
+      margin: 16px 0 8px;
+      letter-spacing: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container" id="app"></div>
+
+<script>
+// --- Web Audio API Synthesizer ---
+class SoundManager {
+  constructor() {
+    this.ctx = null;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+  tone(freq, duration = 0.12, type = 'sine', volume = 0.08) {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + duration);
+    } catch (e) {}
+  }
+  click() { this.tone(720, 0.04, 'sine', 0.04); }
+  correct() {
+    this.tone(659.25, 0.08, 'sine', 0.06);
+    setTimeout(() => this.tone(880, 0.12, 'sine', 0.06), 70);
+  }
+  wrong() {
+    this.tone(180, 0.2, 'sawtooth', 0.08);
+  }
+  roundTransition() {
+    [440, 554.37, 659.25, 880].forEach((f, i) => {
+      setTimeout(() => this.tone(f, 0.18, 'sine', 0.06), i * 80);
+    });
+  }
+}
+const sound = new SoundManager();
+
+// --- Task Bank ---
+const PRIORITIES = ['critical', 'high', 'medium', 'low'];
+const TASK_CATALOG = {
+  critical: [
+    'PRODUCTION DB OVERFLOW',
+    'SECURITY TOKEN BREACH',
+    'ROOT AUTH SERVICE OUTAGE',
+    'PRIMARY GATEWAY FAILURE',
+    'PAYMENT KERNEL PANIC',
+    'SSL CERT EXPIRATION 0-DAY'
+  ],
+  high: [
+    'MEMORY LEAK IN WORKER',
+    'INGESTION PIPELINE STALL',
+    'INDEX FRAGMENTATION > 85%',
+    'CLUSTER NODE DESYNC',
+    'CACHE INVALIDATION FAILURE',
+    'RATE LIMIT CASCADE ALERT'
+  ],
+  medium: [
+    'OPTIMIZE SQL JOIN QUERY',
+    'REFRESH STAGING MIGRATIONS',
+    'UPDATE DOCKER RUNTIME',
+    'REBALANCE REPLICA CHUNKS',
+    'ROTATE AUDIT ENCRYPTION',
+    'STANDARDIZE LOG SCHEMAS'
+  ],
+  low: [
+    'ARCHIVE RETIRED SCHEMAS',
+    'CLEANUP TMP LOG SPILLS',
+    'UPDATE REPO METRICS DOC',
+    'FORMAT CSS TOKEN STACK',
+    'PRUNE STALE BRANCH REFS',
+    'BENCHMARK IDLE TELEMETRY'
+  ]
+};
+
+// --- Game Variables ---
+let currentScreen = 'title'; // 'title' | 'play' | 'roundSummary' | 'gameOver'
+let currentRound = 1;
+const TOTAL_ROUNDS = 3;
+const ROUND_DURATION = 30; // 30 seconds
+let timeRemaining = 30;
+let score = 0;
+let correctCount = 0;
+let errorCount = 0;
+let roundCorrect = 0;
+let roundErrors = 0;
+
+let fallingCards = [];
+let nextCardId = 1;
+let selectedCardId = null;
+let spawnTimer = null;
+let gameTimer = null;
+let animFrameId = null;
+let lastTickTime = null;
+
+function app() { return document.getElementById('app'); }
+
+function render() {
+  if (currentScreen === 'title') renderTitle();
+  else if (currentScreen === 'play') renderPlay();
+  else if (currentScreen === 'roundSummary') renderRoundSummary();
+  else if (currentScreen === 'gameOver') renderGameOver();
+}
+
+function renderTitle() {
+  app().innerHTML = `
+    <div class="brand-header">
+      <div class="brand-title">ADM-SI // TASK TRIAGE</div>
+      <div class="brand-sub">OPERATIONAL CONTROL ROOM</div>
+    </div>
+    <div class="screen">
+      <h2>◼ INCIDENT BACKLOG CONTROL</h2>
+      <p>Operational triage simulation linked to <strong>ADM-SI</strong>. As technical debt and incident tickets fall into the pipeline, assign them to the appropriate urgency category before buffer overrun occurs.</p>
+
+      <div class="briefing-box">
+        <strong>OPERATIONAL PROTOCOL:</strong><br>
+        1. Task cards fall continuously from the ingestion queue.<br>
+        2. Triage cards into 4 priority queues: <strong>CRITICAL</strong>, <strong>HIGH</strong>, <strong>MEDIUM</strong>, <strong>LOW</strong>.<br>
+        3. Controls: Press <strong>1</strong> (Critical), <strong>2</strong> (High), <strong>3</strong> (Medium), <strong>4</strong> (Low) for rapid keyboard triage.<br>
+        4. Alternatively, click any card to select it, then click the target column.<br>
+        5. Scoring: <strong>+10 points</strong> for correct triage, <strong>-5 points</strong> for wrong triage or dropped overflow.<br>
+        6. Protocol spans <strong>3 incident cycles</strong> of 30 seconds each with accelerating ingestion rates.
+      </div>
+
+      <button class="btn" onclick="startNewGame()">[ INITIALIZE TRIAGE SESSION → ]</button>
+    </div>
+  `;
+}
+
+function startNewGame() {
+  sound.init();
+  sound.click();
+  score = 0;
+  correctCount = 0;
+  errorCount = 0;
+  currentRound = 1;
+  startRound(currentRound);
+}
+
+function startRound(r) {
+  currentRound = r;
+  currentScreen = 'play';
+  timeRemaining = ROUND_DURATION;
+  roundCorrect = 0;
+  roundErrors = 0;
+  selectedCardId = null;
+  fallingCards = [];
+
+  render();
+  sound.roundTransition();
+
+  const fallZone = document.getElementById('fallZone');
+  if (fallZone) fallZone.innerHTML = '<div class="scan-line"></div>';
+
+  // Ingestion speed scales per round
+  const spawnInterval = r === 1 ? 1600 : r === 2 ? 1200 : 850;
+  const baseSpeed = r === 1 ? 38 : r === 2 ? 50 : 66; // pixels per second
+
+  // Start gravity animation loop
+  lastTickTime = performance.now();
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(tickPhysics);
+
+  // Spawn loop
+  clearInterval(spawnTimer);
+  spawnTask(baseSpeed);
+  spawnTimer = setInterval(() => {
+    if (currentScreen === 'play' && timeRemaining > 0) {
+      spawnTask(baseSpeed);
+    }
+  }, spawnInterval);
+
+  // 100ms clock interval for smooth timer bar
+  clearInterval(gameTimer);
+  gameTimer = setInterval(() => {
+    timeRemaining = Math.max(0, timeRemaining - 0.1);
+    updateHudTime();
+    if (timeRemaining <= 0) {
+      finishRound();
+    }
+  }, 100);
+}
+
+function spawnTask(baseSpeed) {
+  const fallZone = document.getElementById('fallZone');
+  if (!fallZone) return;
+
+  const pri = PRIORITIES[Math.floor(Math.random() * PRIORITIES.length)];
+  const names = TASK_CATALOG[pri];
+  const title = names[Math.floor(Math.random() * names.length)];
+  const id = nextCardId++;
+
+  // Calculate random horizontal position within zone width
+  const zoneWidth = fallZone.clientWidth || 800;
+  const cardWidth = 260;
+  const x = Math.max(12, Math.min(zoneWidth - cardWidth - 12, Math.random() * (zoneWidth - cardWidth)));
+  const y = -40; // start slightly above visible boundary
+  const speed = baseSpeed * (0.85 + Math.random() * 0.3);
+
+  // Create DOM element ONCE (Zero DOM thrashing)
+  const el = document.createElement('div');
+  el.className = `task-card priority-${pri}`;
+  el.dataset.id = id;
+  el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  el.innerHTML = `<strong>[${pri.toUpperCase()}]</strong> ${title}`;
+  el.onclick = (e) => {
+    e.stopPropagation();
+    selectCard(id);
+  };
+
+  fallZone.appendChild(el);
+
+  fallingCards.push({
+    id,
+    priority: pri,
+    title,
+    x,
+    y,
+    speed,
+    dom: el
+  });
+}
+
+function tickPhysics(timestamp) {
+  if (currentScreen !== 'play') return;
+  const dt = (timestamp - lastTickTime) / 1000;
+  lastTickTime = timestamp;
+
+  const fallZone = document.getElementById('fallZone');
+  const zoneHeight = fallZone ? fallZone.clientHeight : 250;
+
+  for (let i = fallingCards.length - 1; i >= 0; i--) {
+    const card = fallingCards[i];
+    card.y += card.speed * dt;
+
+    // Check overflow boundary
+    if (card.y > zoneHeight) {
+      // Card dropped without triage
+      handleDroppedCard(card, i);
+      continue;
+    }
+
+    // Apply clean transform
+    card.dom.style.transform = `translate3d(${card.x}px, ${card.y}px, 0)`;
+  }
+
+  animFrameId = requestAnimationFrame(tickPhysics);
+}
+
+function handleDroppedCard(card, index) {
+  fallingCards.splice(index, 1);
+  if (card.dom && card.dom.parentNode) {
+    card.dom.parentNode.removeChild(card.dom);
+  }
+  if (selectedCardId === card.id) selectedCardId = null;
+
+  score = Math.max(0, score - 5);
+  errorCount++;
+  roundErrors++;
+  sound.wrong();
+  showFeedback('OVERRUN // CARD DROPPED (-5)', 'error');
+  updateHudScore();
+}
+
+function selectCard(id) {
+  sound.click();
+  selectedCardId = id;
+  fallingCards.forEach(c => {
+    if (c.id === id) {
+      c.dom.classList.add('selected');
+    } else {
+      c.dom.classList.remove('selected');
+    }
+  });
+  const c = fallingCards.find(x => x.id === id);
+  if (c) {
+    showFeedback(`TARGETED: [${c.priority.toUpperCase()}] — SELECT QUEUE OR PRESS HOTKEY`, 'correct');
+  }
+}
+
+function triageToPriority(targetPri) {
+  sound.init();
+  if (fallingCards.length === 0) return;
+
+  let targetCard = null;
+  let targetIdx = -1;
+
+  if (selectedCardId !== null) {
+    targetIdx = fallingCards.findIndex(c => c.id === selectedCardId);
+    if (targetIdx !== -1) {
+      targetCard = fallingCards[targetIdx];
+    }
+  }
+
+  // If no card selected, pick the lowest (oldest) falling card
+  if (!targetCard) {
+    let maxY = -9999;
+    fallingCards.forEach((c, idx) => {
+      if (c.y > maxY) {
+        maxY = c.y;
+        targetCard = c;
+        targetIdx = idx;
+      }
+    });
+  }
+
+  if (!targetCard || targetIdx === -1) return;
+
+  // Remove card from physics list and DOM
+  fallingCards.splice(targetIdx, 1);
+  if (targetCard.dom && targetCard.dom.parentNode) {
+    targetCard.dom.parentNode.removeChild(targetCard.dom);
+  }
+  selectedCardId = null;
+
+  const isCorrect = (targetCard.priority === targetPri);
+  if (isCorrect) {
+    score += 10;
+    correctCount++;
+    roundCorrect++;
+    sound.correct();
+    showFeedback(`+10 // RESOLVED [${targetPri.toUpperCase()}]`, 'correct');
+  } else {
+    score = Math.max(0, score - 5);
+    errorCount++;
+    roundErrors++;
+    sound.wrong();
+    showFeedback(`-5 MISCLASSIFIED // WAS [${targetCard.priority.toUpperCase()}]`, 'error');
+  }
+
+  // Append card to column list
+  appendPlacedCard(targetPri, targetCard.title, isCorrect);
+  updateHudScore();
+}
+
+function appendPlacedCard(columnPri, title, isCorrect) {
+  const colList = document.getElementById(`list-${columnPri}`);
+  if (!colList) return;
+  const item = document.createElement('div');
+  item.className = `placed-item ${isCorrect ? 'correct' : 'wrong'}`;
+  item.textContent = `${isCorrect ? '✓' : '✗'} ${title}`;
+  colList.prepend(item);
+}
+
+function showFeedback(text, type) {
+  const el = document.getElementById('feedbackMsg');
+  if (!el) return;
+  el.textContent = text;
+  el.className = `feedback-msg ${type}`;
+}
+
+function updateHudTime() {
+  const valEl = document.getElementById('timeVal');
+  const barEl = document.getElementById('timerBar');
+  if (valEl) valEl.textContent = `${Math.ceil(timeRemaining)}s`;
+  if (barEl) {
+    const pct = Math.max(0, (timeRemaining / ROUND_DURATION) * 100);
+    barEl.style.width = `${pct}%`;
+    if (timeRemaining < 6) {
+      barEl.classList.add('warning');
+    } else {
+      barEl.classList.remove('warning');
+    }
+  }
+}
+
+function updateHudScore() {
+  const scoreEl = document.getElementById('scoreVal');
+  const accEl = document.getElementById('accVal');
+  if (scoreEl) scoreEl.textContent = score;
+  if (accEl) {
+    const total = correctCount + errorCount;
+    const pct = total === 0 ? 100 : Math.round((correctCount / total) * 100);
+    accEl.textContent = `${pct}%`;
+  }
+}
+
+function finishRound() {
+  clearInterval(spawnTimer);
+  clearInterval(gameTimer);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+
+  // Clear remaining cards in fallzone
+  fallingCards.forEach(c => {
+    if (c.dom && c.dom.parentNode) c.dom.parentNode.removeChild(c.dom);
+  });
+  fallingCards = [];
+
+  if (currentRound < TOTAL_ROUNDS) {
+    currentScreen = 'roundSummary';
+    sound.roundTransition();
+    render();
+  } else {
+    currentScreen = 'gameOver';
+    sound.roundTransition();
+    render();
+  }
+}
+
+function renderPlay() {
+  const total = correctCount + errorCount;
+  const accPct = total === 0 ? 100 : Math.round((correctCount / total) * 100);
+
+  app().innerHTML = `
+    <div class="brand-header">
+      <div class="brand-title">ADM-SI // CONTROL ROOM</div>
+      <div class="brand-sub">CYCLE: ${currentRound} / ${TOTAL_ROUNDS}</div>
+    </div>
+    <div class="hud">
+      <div class="hud-stat">
+        <span class="hud-label">Incident Cycle</span>
+        <span class="hud-val">${currentRound} / ${TOTAL_ROUNDS}</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Score</span>
+        <span class="hud-val" id="scoreVal">${score}</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Time Remaining</span>
+        <span class="hud-val ivory" id="timeVal">${Math.ceil(timeRemaining)}s</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Accuracy</span>
+        <span class="hud-val ivory" id="accVal">${accPct}%</span>
+      </div>
+    </div>
+
+    <div class="timer-track">
+      <div class="timer-bar" id="timerBar" style="width: 100%;"></div>
+    </div>
+
+    <div class="fall-zone" id="fallZone">
+      <div class="scan-line"></div>
+    </div>
+
+    <div class="columns-row">
+      <div class="priority-col col-critical" onclick="triageToPriority('critical')">
+        <div class="col-header">
+          <span class="col-title">CRITICAL</span>
+          <span class="col-hotkey">[1]</span>
+        </div>
+        <div class="placed-list" id="list-critical"></div>
+      </div>
+      <div class="priority-col col-high" onclick="triageToPriority('high')">
+        <div class="col-header">
+          <span class="col-title">HIGH</span>
+          <span class="col-hotkey">[2]</span>
+        </div>
+        <div class="placed-list" id="list-high"></div>
+      </div>
+      <div class="priority-col col-medium" onclick="triageToPriority('medium')">
+        <div class="col-header">
+          <span class="col-title">MEDIUM</span>
+          <span class="col-hotkey">[3]</span>
+        </div>
+        <div class="placed-list" id="list-medium"></div>
+      </div>
+      <div class="priority-col col-low" onclick="triageToPriority('low')">
+        <div class="col-header">
+          <span class="col-title">LOW</span>
+          <span class="col-hotkey">[4]</span>
+        </div>
+        <div class="placed-list" id="list-low"></div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="feedback-msg" id="feedbackMsg">HOTKEYS [1-4] OR CLICK CARDS TO TRIAGE</div>
+      <button class="btn btn-crimson" style="padding:6px 14px;font-size:0.7rem;" onclick="abortSession()">[ ABORT ]</button>
+    </div>
+  `;
+}
+
+function abortSession() {
+  clearInterval(spawnTimer);
+  clearInterval(gameTimer);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  currentScreen = 'title';
+  render();
+}
+
+function renderRoundSummary() {
+  const roundTotal = roundCorrect + roundErrors;
+  const roundAcc = roundTotal === 0 ? 100 : Math.round((roundCorrect / roundTotal) * 100);
+
+  app().innerHTML = `
+    <div class="brand-header">
+      <div class="brand-title">ADM-SI // CYCLE ${currentRound} COMPLETED</div>
+      <div class="brand-sub">TRANSITIONING PROTOCOL</div>
+    </div>
+    <div class="screen">
+      <h2>◼ INCIDENT CYCLE ${currentRound} RESOLVED</h2>
+      <div class="score-banner">${score}</div>
+      <p>Cycle performance recorded. Escalation volume intensifying for next sequence.</p>
+
+      <div class="briefing-box" style="text-align:center;max-width:440px;margin:20px auto 28px;">
+        <div style="margin-bottom:6px;">TASKS CLASSIFIED: <strong style="color:var(--ivory);">${roundTotal}</strong></div>
+        <div style="margin-bottom:6px;">CORRECT TRIAGES: <strong style="color:var(--amber);">${roundCorrect}</strong></div>
+        <div style="margin-bottom:6px;">CYCLE ACCURACY: <strong style="color:var(--ivory);">${roundAcc}%</strong></div>
+        <div>CUMULATIVE SCORE: <strong style="color:var(--amber);">${score} PTS</strong></div>
+      </div>
+
+      <button class="btn" onclick="startRound(currentRound + 1)">[ COMMENCE CYCLE ${currentRound + 1} → ]</button>
+    </div>
+  `;
+}
+
+function renderGameOver() {
+  if (score < 120) {
+    triggerHackedByAdriel("COLAPSO DO BACKLOG // INCIDENTES NÃO RESOLVIDOS A TEMPO. O OPERADOR ADRIEL RETOMOU O CONTROLE", "startNewGame");
+  } else {
+    triggerHoneypotVictory("CREDENCIAIS DO DASHBOARD ADM-SI", "ADM-SI (GitHub)", "https://github.com/adrielhs/ADM-SI", "startNewGame");
+  }
+}
+
+function renderGameOverOld() {
+  const total = correctCount + errorCount;
+  const acc = total === 0 ? 100 : Math.round((correctCount / total) * 100);
+
+  // Corporate operational rating
+  const operationalRank = score >= 350
+    ? 'CHIEF OF INFRASTRUCTURE OPERATIONS'
+    : score >= 240
+      ? 'SENIOR INCIDENT CONTROLLER'
+      : score >= 140
+        ? 'SYSTEMS TRIAGE ENGINEER'
+        : 'INCIDENT RESPONSE ANALYST';
+
+  app().innerHTML = `
+    <div class="brand-header">
+      <div class="brand-title">ADM-SI // TRIAGE AUDIT COMPLETE</div>
+      <div class="brand-sub">SESSION LOGGED</div>
+    </div>
+    <div class="screen">
+      <h2>◼ BACKLOG STABILITY RESTORED</h2>
+      <div class="score-banner">${score}</div>
+      <p>3 complete incident cycles processed.<br>
+      OPERATIONAL ASSESSMENT: <strong style="color:var(--amber);">${operationalRank}</strong>.<br>
+      Overall backlog accuracy: <strong style="color:var(--ivory);">${acc}%</strong> (${correctCount} resolved, ${errorCount} faults).</p>
+
+      <div class="briefing-box" style="text-align:center;max-width:440px;margin:20px auto 28px;">
+        <div>LINKED PROJECT: <strong style="color:var(--amber);">ADM-SI</strong></div>
+        <div>PIPELINE STATE: <strong style="color:var(--ivory);">HEALTHY // UNBLOCKED</strong></div>
+        <div>VERIFICATION CODE: <strong style="color:var(--muted);">GT-SEC-092</strong></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+        <button class="btn" onclick="startNewGame()">[ RUN SIMULATION AGAIN ]</button>
+        <button class="btn btn-secondary" onclick="window.location.href='https://github.com/adrielhs'">[ RETURN TO PROFILE ]</button>
+      </div>
+    </div>
+  `;
+}
+
+// Keyboard shortcuts for hotkeys 1, 2, 3, 4
+window.addEventListener('keydown', (e) => {
+  if (currentScreen !== 'play') return;
+  if (e.key === '1') triageToPriority('critical');
+  else if (e.key === '2') triageToPriority('high');
+  else if (e.key === '3') triageToPriority('medium');
+  else if (e.key === '4') triageToPriority('low');
+});
+
+// --- CYBERPUNK NARRATIVE MECHANICS: HACKED BY ADRIEL & HONEYPOT VICTORY ---
+let honeypotTimerId = null;
+
+function playHackAlarmSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(480, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch(e) {}
+}
+
+function playHoneypotWinSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [440, 554.37, 659.25, 880].forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const t = ctx.currentTime + i * 0.12;
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.35);
+    });
+  } catch(e) {}
+}
+
+function triggerHackedByAdriel(reason, restartFnName) {
+  playHackAlarmSound();
+  if (typeof levelTimerInterval !== 'undefined' && levelTimerInterval) clearInterval(levelTimerInterval);
+  if (typeof timerInterval !== 'undefined' && timerInterval) clearInterval(timerInterval);
+  if (typeof timerId !== 'undefined' && timerId) clearInterval(timerId);
+  if (typeof gameLoopId !== 'undefined' && gameLoopId) cancelAnimationFrame(gameLoopId);
+
+  const targetEl = document.getElementById('app') || document.querySelector('.hud-box') || document.body;
+  targetEl.innerHTML = `
+    <div style="border:2px solid #8C1D18;background:#100405;padding:32px 20px;border-radius:4px;box-shadow:0 0 35px rgba(140,29,24,0.5);text-align:center;max-width:760px;margin:20px auto;font-family:'Space Mono','Consolas',monospace;">
+      <div style="font-size:0.85rem;color:#D4AF37;letter-spacing:3px;margin-bottom:8px;">⚠️ ALERTA DE SEGURANÇA // SISTEMA INTERCEPTADO</div>
+      <div style="font-size:2.2rem;color:#FF003C;font-weight:bold;margin-bottom:8px;text-shadow:0 0 15px rgba(255,0,60,0.6);">💀 VOCÊ FOI HACKEADO POR ADRIEL</div>
+      <div style="font-size:0.8rem;color:#8C1D18;letter-spacing:2px;margin-bottom:18px;">COUNTER-MEASURE INJECTED // INTRUSION COMPROMISED</div>
+
+      <div style="background:#030305;border:1px solid #8C1D18;padding:16px;text-align:left;font-size:0.8rem;color:#E0E7FF;line-height:1.7;margin:15px auto 25px;max-width:560px;">
+        <div style="color:#FF003C;font-weight:bold;">> [CRITICAL_FAULT]: ${reason}</div>
+        <div>> INVASOR: Terminal externo desautenticado.</div>
+        <div>> CONTRAMEDIDA: Injeção de payload reverso executada com sucesso.</div>
+        <div>> OPERADOR DO SISTEMA: <strong style="color:#D4AF37;">Adriel Hipolito</strong> [FULLSTACK_DEVELOPER]</div>
+        <div style="color:#64748B;">> STATUS: Sessão interceptada e confinada ao Sandbox corporativo.</div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <button class="btn" onclick="${restartFnName}()">[ 🔄 REINICIAR TERMINAL & TENTAR NOVAMENTE ]</button>
+        <button class="btn btn-secondary" onclick="window.location.href='https://github.com/adrielhs'">[ 🏃 RETORNAR AO PERFIL COM VIDA ]</button>
+      </div>
+    </div>
+  `;
+}
+
+function triggerHoneypotVictory(prizeTitle, projectName, projectUrl, restartFnName) {
+  playHoneypotWinSound();
+  if (typeof levelTimerInterval !== 'undefined' && levelTimerInterval) clearInterval(levelTimerInterval);
+  if (typeof timerInterval !== 'undefined' && timerInterval) clearInterval(timerInterval);
+  if (typeof timerId !== 'undefined' && timerId) clearInterval(timerId);
+  if (typeof gameLoopId !== 'undefined' && gameLoopId) cancelAnimationFrame(gameLoopId);
+
+  let timeLeft = 5;
+  const targetEl = document.getElementById('app') || document.querySelector('.hud-box') || document.body;
+  targetEl.innerHTML = `
+    <div style="border:2px solid #D4AF37;background:#060710;padding:32px 20px;border-radius:4px;box-shadow:0 0 35px rgba(212,175,55,0.25);text-align:center;max-width:760px;margin:20px auto;font-family:'Space Mono','Consolas',monospace;">
+      <div style="color:#00FF66;font-size:0.85rem;letter-spacing:2px;margin-bottom:6px;">★ [ACESSO NÍVEL ARCHON CONCEDIDO]</div>
+      <div style="font-size:2rem;color:#D4AF37;font-weight:bold;margin-bottom:6px;text-shadow:0 0 15px rgba(212,175,55,0.4);">🎁 RECOMPENSA DESCRIPTOGRAFADA!</div>
+      <div style="font-size:1.1rem;color:#F5F0E8;font-weight:bold;margin-bottom:18px;">${prizeTitle}</div>
+
+      <div style="background:#030305;border:1px solid #D4AF37;padding:18px;text-align:left;font-size:0.8rem;color:#E0E7FF;line-height:1.7;margin:15px auto 25px;max-width:580px;">
+        <div style="color:#00FF66;">> PAYLOAD_STATUS: RECOMPENSA VALIDADA E LIBERADA.</div>
+        <div style="color:#FF003C;font-weight:bold;margin:4px 0;">⚠️ ALERTA DE SEGURANÇA: O PAYLOAD É UM HONEYPOT CORPORATIVO!</div>
+        <div style="color:#94A3B8;">Você achou que estava apenas jogando um minigame isolado...</div>
+        <div>O arquivo premiado disparou uma rotina de extração automática para o núcleo real do projeto:</div>
+        <div style="color:#D4AF37;font-weight:bold;margin:8px 0;font-size:0.95rem;">► PROJETO ATRELADO: ${projectName}</div>
+        <div style="color:#F5F0E8;">Redirecionando sua sessão em <span id="honeypot-sec" style="color:#00FF66;font-weight:bold;font-size:1.2rem;">5</span> segundos...</div>
+        <div style="width:100%;height:4px;background:#1E293B;margin-top:10px;"><div id="honeypot-bar" style="width:100%;height:100%;background:#D4AF37;transition:width 5s linear;"></div></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <a href="${projectUrl}" class="btn" style="text-decoration:none;">[ 🚀 ENTRAR NO PROJETO AGORA (PULAR TIMER) ]</a>
+        <button class="btn btn-secondary" onclick="cancelHoneypot('${restartFnName}')">[ 🛑 CANCELAR & JOGAR NOVAMENTE ]</button>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const bar = document.getElementById('honeypot-bar');
+    if (bar) bar.style.width = '0%';
+  }, 50);
+
+  honeypotTimerId = setInterval(() => {
+    timeLeft--;
+    const secEl = document.getElementById('honeypot-sec');
+    if (secEl) secEl.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(honeypotTimerId);
+      window.location.href = projectUrl;
+    }
+  }, 1000);
+}
+
+function cancelHoneypot(restartFnName) {
+  if (honeypotTimerId) clearInterval(honeypotTimerId);
+  if (typeof window[restartFnName] === 'function') {
+    window[restartFnName]();
+  }
+}
+
+// Initial render
+render();
+
+</script>
+</body>
+</html>

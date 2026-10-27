@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Route // Network Path Simulation</title>
+  <style>
+    :root {
+      --bg: #030305;
+      --panel: #0A0B10;
+      --panel-elevated: #11131B;
+      --amber: #D4AF37;
+      --amber-dim: rgba(212, 175, 55, 0.15);
+      --ivory: #F5F0E8;
+      --crimson: #8C1D18;
+      --crimson-dim: rgba(140, 29, 24, 0.2);
+      --muted: #64748B;
+      --text: #E0E7FF;
+      --border: #1E293B;
+      --font-mono: 'Consolas', 'Space Mono', 'Courier New', monospace;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-mono);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      user-select: none;
+    }
+    .game-container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--panel);
+      border: 1px solid var(--amber);
+      padding: 28px 24px;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.85);
+      position: relative;
+    }
+    .brand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .brand-title {
+      color: var(--amber);
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      font-weight: bold;
+    }
+    .brand-sub {
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+      background: var(--panel-elevated);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+    }
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .hud-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .hud-val {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--amber);
+    }
+    .hud-val.ivory {
+      color: var(--ivory);
+    }
+    .grid-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px auto;
+      min-height: 340px;
+    }
+    #grid {
+      display: grid;
+      gap: 6px;
+      background: #05060A;
+      padding: 12px;
+      border: 1px solid var(--border);
+    }
+    .cell {
+      border: 1px solid var(--border);
+      background: #090B12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.12s, border-color 0.12s;
+      position: relative;
+      touch-action: none;
+    }
+    .cell:hover {
+      background: #141824;
+    }
+    .cell.node {
+      border: 2px solid;
+      background: #0E111C;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+    .cell.node.active-origin {
+      box-shadow: 0 0 12px currentColor;
+    }
+    .cell.path-cell {
+      position: relative;
+    }
+    .cell.complete-circuit {
+      animation: pulseCircuit 1.5s infinite alternate;
+    }
+    @keyframes pulseCircuit {
+      from { opacity: 0.85; }
+      to { opacity: 1; }
+    }
+    .node-glyph {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      line-height: 1.1;
+      pointer-events: none;
+    }
+    .path-core {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      pointer-events: none;
+    }
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn {
+      background: transparent;
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      padding: 10px 22px;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background: var(--amber);
+      color: var(--bg);
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+    }
+    .btn-secondary {
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+    .btn-secondary:hover {
+      background: var(--muted);
+      color: var(--bg);
+      box-shadow: none;
+    }
+    .btn-crimson {
+      border-color: var(--crimson);
+      color: var(--crimson);
+    }
+    .btn-crimson:hover {
+      background: var(--crimson);
+      color: var(--ivory);
+      box-shadow: 0 0 15px rgba(140, 29, 24, 0.4);
+    }
+    .status-msg {
+      font-size: 0.82rem;
+      letter-spacing: 1.5px;
+      color: var(--amber);
+      min-height: 20px;
+    }
+    .screen {
+      text-align: center;
+      padding: 40px 16px;
+    }
+    .screen h2 {
+      color: var(--amber);
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+    .screen p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .briefing-box {
+      background: #06070E;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      margin: 0 auto 28px;
+      max-width: 640px;
+      text-align: left;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    .briefing-box strong {
+      color: var(--ivory);
+    }
+    .score-banner {
+      font-size: 3.2rem;
+      font-weight: bold;
+      color: var(--amber);
+      margin: 16px 0 8px;
+      letter-spacing: 4px;
+    }
+    .overlay-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(3, 3, 5, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 50;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-container" id="app"></div>
+
+<script>
+// --- Audio Engine (Web Audio API Synthesizer) ---
+class SoundManager {
+  constructor() {
+    this.ctx = null;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+  tone(freq, duration = 0.12, type = 'sine', volume = 0.08) {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + duration);
+    } catch (e) {}
+  }
+  click() { this.tone(700, 0.05, 'sine', 0.04); }
+  step() { this.tone(520, 0.04, 'triangle', 0.03); }
+  backtrack() { this.tone(330, 0.05, 'sine', 0.04); }
+  circuitComplete() {
+    [587.33, 880, 1174.66].forEach((f, i) => {
+      setTimeout(() => this.tone(f, 0.16, 'sine', 0.06), i * 70);
+    });
+  }
+  levelComplete() {
+    [440, 554.37, 659.25, 880].forEach((f, i) => {
+      setTimeout(() => this.tone(f, 0.22, 'sine', 0.07), i * 90);
+    });
+  }
+  error() {
+    this.tone(146.83, 0.22, 'sawtooth', 0.07);
+  }
+}
+const sound = new SoundManager();
+
+// --- Authoritative Corporate Palette Colors for Pairs ---
+// Amber, Crimson, Ivory, Muted Slate, Light Silver
+const PAIR_COLORS = ['#D4AF37', '#8C1D18', '#F5F0E8', '#64748B', '#E0E7FF'];
+const PAIR_NAMES = ['AMBER', 'CRIMSON', 'IVORY', 'SLATE', 'SILVER'];
+
+// --- Proven Solvable Planar Configurations (from explorer_survey_2 §3.2) ---
+const LEVELS = [
+  // L1: 3x3, 3 pairs (Amber, Crimson, Ivory)
+  {
+    size: 3,
+    cellSize: 72,
+    pairs: [
+      { id: 0, a: [0,0], b: [2,1] },
+      { id: 1, a: [0,2], b: [2,2] },
+      { id: 2, a: [1,0], b: [2,0] }
+    ]
+  },
+  // L2: 4x4, 3 pairs
+  {
+    size: 4,
+    cellSize: 64,
+    pairs: [
+      { id: 0, a: [0,0], b: [0,3] },
+      { id: 1, a: [1,0], b: [3,2] },
+      { id: 2, a: [1,1], b: [3,3] }
+    ]
+  },
+  // L3: 5x5, 4 pairs
+  {
+    size: 5,
+    cellSize: 54,
+    pairs: [
+      { id: 0, a: [0,0], b: [4,2] },
+      { id: 1, a: [0,1], b: [2,4] },
+      { id: 2, a: [1,1], b: [4,3] },
+      { id: 3, a: [1,2], b: [2,2] }
+    ]
+  },
+  // L4: 6x6, 5 pairs
+  {
+    size: 6,
+    cellSize: 46,
+    pairs: [
+      { id: 0, a: [0,0], b: [0,5] },
+      { id: 1, a: [1,0], b: [5,2] },
+      { id: 2, a: [1,5], b: [5,3] },
+      { id: 3, a: [1,1], b: [1,4] },
+      { id: 4, a: [1,2], b: [2,2] }
+    ]
+  },
+  // L5: 7x7, 5 pairs
+  {
+    size: 7,
+    cellSize: 40,
+    pairs: [
+      { id: 0, a: [0,0], b: [0,6] },
+      { id: 1, a: [1,0], b: [6,3] },
+      { id: 2, a: [1,6], b: [6,4] },
+      { id: 3, a: [1,1], b: [5,3] },
+      { id: 4, a: [2,2], b: [4,4] }
+    ]
+  }
+];
+
+// --- Game State ---
+let currentLevelIdx = 0;
+let movesCount = 0;
+let totalMovesCount = 0;
+let activePairIdx = null;
+let isDragging = false;
+let currentPath = []; // array of [r, c]
+let pairRoutes = {}; // map of pairIdx -> { complete: bool, cells: [[r,c], ...] }
+let currentScreen = 'title'; // 'title' | 'play' | 'complete'
+let levelOverlay = false;
+
+function app() { return document.getElementById('app'); }
+
+function render() {
+  if (currentScreen === 'title') renderTitleScreen();
+  else if (currentScreen === 'play') renderPlayScreen();
+  else if (currentScreen === 'complete') renderEndScreen();
+}
+
+function renderTitleScreen() {
+  app().innerHTML = `
+    <div class="brand-header">
+      <div class="brand-title">PROJETOS INICIAIS // SIGNAL ROUTE</div>
+      <div class="brand-sub">GRID TOPOLOGY ENGINE</div>
+    </div>
+    <div class="screen">
+      <h2>◼ SIGNAL ROUTE ARCHITECTURE</h2>
+      <p>Simulate orthogonal routing channels across high-density circuit topologies. Establish non-overlapping conductive pathways between identical terminal nodes.</p>
+      <div class="briefing-box">
+        <strong>OPERATION DIRECTIVES:</strong><br>
+        1. Click or drag from an active terminal node (<strong>◆ 01-05</strong>) to draw a signal channel.<br>
+        2. Extend paths orthogonally to reach the paired terminal node.<br>
+        3. Signal paths <strong>cannot intersect</strong> or share coordinates with other circuits.<br>
+        4. Click on an existing path or node to re-route or clear its channel.<br>
+        5. Complete all levels from 3×3 up to 7×7 to achieve full system routing integrity.
+      </div>
+      <button class="btn" onclick="startSimulation()">[ INITIATE ROUTING SIMULATION → ]</button>
+    </div>
+  `;
+}
+
+function startSimulation() {
+  sound.init();
+  sound.click();
+  currentLevelIdx = 0;
+  movesCount = 0;
+  totalMovesCount = 0;
+  currentScreen = 'play';
+  initLevel(currentLevelIdx);
+  render();
+}
+
+function initLevel(idx) {
+  const level = LEVELS[idx];
+  pairRoutes = {};
+  level.pairs.forEach((p, pIdx) => {
+    pairRoutes[pIdx] = {
+      complete: false,
+      cells: []
+    };
+  });
+  activePairIdx = null;
+  isDragging = false;
+  currentPath = [];
+  movesCount = 0;
+  levelOverlay = false;
+}
+
+function getPairAt(r, c) {
+  const level = LEVELS[currentLevelIdx];
+  for (let i = 0; i < level.pairs.length; i++) {
+    const p = level.pairs[i];
+    if ((p.a[0] === r && p.a[1] === c) || (p.b[0] === r && p.b[1] === c)) {
+      return { pairIdx: i, isEndpoint: true, endpoint: (p.a[0] === r && p.a[1] === c) ? 'a' : 'b' };
+    }
+  }
+  for (let i = 0; i < level.pairs.length; i++) {
+    const route = pairRoutes[i];
+    if (route && route.cells.some(cell => cell[0] === r && cell[1] === c)) {
+      return { pairIdx: i, isEndpoint: false };
+    }
+  }
+  return null;
+}
+
+function renderPlayScreen() {
+  const level = LEVELS[currentLevelIdx];
+  const size = level.size;
+  const cellSize = level.cellSize;
+  const totalPairs = level.pairs.length;
+  const connectedPairs = Object.values(pairRoutes).filter(r => r.complete).length;
+
+  let overlayHtml = '';
+  if (levelOverlay) {
+    overlayHtml = `
+      <div class="overlay-modal">
+        <h2 style="color:var(--amber);letter-spacing:3px;margin-bottom:8px;">CIRCUIT SECURED</h2>
+        <div style="font-size:0.75rem;letter-spacing:2px;color:var(--muted);margin-bottom:20px;">
+          TOPOLOGY LEVEL ${currentLevelIdx + 1} OF ${LEVELS.length} SYNCHRONIZED
+        </div>
+        <div class="briefing-box" style="text-align:center;max-width:400px;margin-bottom:24px;">
+          <div style="margin-bottom:6px;">GRID SIZE: <strong style="color:var(--ivory)">${size}×${size}</strong></div>
+          <div style="margin-bottom:6px;">MOVES EXPENDED: <strong style="color:var(--amber)">${movesCount}</strong></div>
+          <div>TERMINALS LOCKED: <strong style="color:var(--ivory)">${totalPairs} / ${totalPairs}</strong></div>
+        </div>
+        <button class="btn" onclick="nextLevel()">[ PROCEED TO NEXT TOPOLOGY → ]</button>
+      </div>
+    `;
+  }
+
+  app().innerHTML = `
+    ${overlayHtml}
+    <div class="brand-header">
+      <div class="brand-title">SIGNAL ROUTE // PROJETOS INICIAIS</div>
+      <div class="brand-sub">TOPOLOGY: ${size}×${size}</div>
+    </div>
+    <div class="hud">
+      <div class="hud-stat">
+        <span class="hud-label">Grid Level</span>
+        <span class="hud-val">${currentLevelIdx + 1} / ${LEVELS.length}</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Terminals</span>
+        <span class="hud-val">${connectedPairs} / ${totalPairs}</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Level Moves</span>
+        <span class="hud-val ivory">${movesCount}</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Total Moves</span>
+        <span class="hud-val ivory">${totalMovesCount + movesCount}</span>
+      </div>
+    </div>
+
+    <div class="grid-wrapper">
+      <div id="grid" style="grid-template-columns: repeat(${size}, ${cellSize}px);" onmouseleave="handleMouseLeaveGrid()">
+        ${generateGridCells(level, cellSize)}
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <div class="status-msg" id="statusMsg">
+        ${activePairIdx !== null
+          ? `DRAWING CHANNEL [${PAIR_NAMES[activePairIdx]}] — DRAG TO MATCHING TERMINAL`
+          : connectedPairs === totalPairs
+            ? 'ALL CIRCUITS STABLE'
+            : 'CLICK ANY TERMINAL NODE TO COMMENCE ROUTING'}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-crimson" onclick="triggerHackedByAdriel('ISOLAMENTO DE SUB-REDE // VOCÊ ACIONOU O PROTOCOLO DE DESISTÊNCIA E ADRIEL ISOLOU O NÓ', 'startSimulation')">[ ⚠️ ABORT ROUTE ]</button>
+        <button class="btn btn-secondary" onclick="resetCurrentLevel()">[ RESET GRID ]</button>
+      </div>
+    </div>
+  `;
+
+  attachGridListeners();
+}
+
+function generateGridCells(level, cellSize) {
+  const size = level.size;
+  let html = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const loc = getPairAt(r, c);
+      let classes = ['cell'];
+      let inlineStyle = `width:${cellSize}px;height:${cellSize}px;`;
+      let content = '';
+
+      if (loc && loc.isEndpoint) {
+        classes.push('node');
+        const color = PAIR_COLORS[loc.pairIdx];
+        inlineStyle += `border-color:${color};color:${color};`;
+        if (pairRoutes[loc.pairIdx] && pairRoutes[loc.pairIdx].complete) {
+          classes.push('complete-circuit');
+          inlineStyle += `background:rgba(212,175,55,0.12);box-shadow:inset 0 0 10px ${color}33;`;
+        }
+        if (activePairIdx === loc.pairIdx) {
+          classes.push('active-origin');
+        }
+        content = `<div class="node-glyph"><span>◆</span><span style="font-size:0.6rem;">0${loc.pairIdx + 1}</span></div>`;
+      } else if (loc && !loc.isEndpoint) {
+        classes.push('path-cell');
+        const color = PAIR_COLORS[loc.pairIdx];
+        inlineStyle += `border-color:${color}66;background:${color}18;`;
+        if (pairRoutes[loc.pairIdx] && pairRoutes[loc.pairIdx].complete) {
+          classes.push('complete-circuit');
+        }
+        content = `<div class="path-core" style="background:${color};"></div>`;
+      }
+
+      html += `<div class="${classes.join(' ')}" style="${inlineStyle}" data-r="${r}" data-c="${c}">${content}</div>`;
+    }
+  }
+  return html;
+}
+
+function attachGridListeners() {
+  const cells = document.querySelectorAll('#grid .cell');
+  cells.forEach(cell => {
+    const r = parseInt(cell.dataset.r, 10);
+    const c = parseInt(cell.dataset.c, 10);
+
+    cell.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      handleCellDown(r, c);
+    });
+
+    cell.addEventListener('mouseenter', (e) => {
+      if (isDragging && activePairIdx !== null) {
+        handleCellEnter(r, c);
+      }
+    });
+
+    cell.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleCellDown(r, c);
+    }, { passive: false });
+
+    cell.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isDragging || activePairIdx === null) return;
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target && target.classList.contains('cell')) {
+        const tr = parseInt(target.dataset.r, 10);
+        const tc = parseInt(target.dataset.c, 10);
+        handleCellEnter(tr, tc);
+      }
+    }, { passive: false });
+  });
+
+  window.addEventListener('mouseup', handleWindowMouseUp);
+  window.addEventListener('touchend', handleWindowMouseUp);
+}
+
+function handleCellDown(r, c) {
+  sound.init();
+  const level = LEVELS[currentLevelIdx];
+  const pairInfo = getPairAt(r, c);
+
+  if (pairInfo) {
+    const pIdx = pairInfo.pairIdx;
+    // Clear existing route for this pair to re-draw
+    pairRoutes[pIdx].complete = false;
+    pairRoutes[pIdx].cells = [];
+    activePairIdx = pIdx;
+    isDragging = true;
+    currentPath = [[r, c]];
+    movesCount++;
+    sound.click();
+    renderPlayScreen();
+  }
+}
+
+function handleCellEnter(r, c) {
+  if (activePairIdx === null || currentPath.length === 0) return;
+  const last = currentPath[currentPath.length - 1];
+  if (last[0] === r && last[1] === c) return; // same cell
+
+  // Backtracking: if entered second-to-last cell, pop last cell
+  if (currentPath.length > 1) {
+    const secondLast = currentPath[currentPath.length - 2];
+    if (secondLast[0] === r && secondLast[1] === c) {
+      currentPath.pop();
+      pairRoutes[activePairIdx].cells = currentPath.slice(1);
+      movesCount++;
+      sound.backtrack();
+      renderPlayScreen();
+      return;
+    }
+  }
+
+  // Orthogonal adjacency check
+  const dist = Math.abs(last[0] - r) + Math.abs(last[1] - c);
+  if (dist !== 1) return; // not orthogonally adjacent
+
+  // Check collision with other pairs or own path
+  const level = LEVELS[currentLevelIdx];
+  const pair = level.pairs[activePairIdx];
+  const isStartEndpoint = (pair.a[0] === currentPath[0][0] && pair.a[1] === currentPath[0][1]);
+  const targetEnd = isStartEndpoint ? pair.b : pair.a;
+
+  // Collision with another route
+  const existingLoc = getPairAt(r, c);
+  if (existingLoc) {
+    if (existingLoc.pairIdx !== activePairIdx) {
+      sound.error();
+      return; // blocked by another circuit
+    }
+    // If it's the start node itself, don't self-loop
+    if (r === currentPath[0][0] && c === currentPath[0][1]) {
+      return;
+    }
+    // If it's the target endpoint: circuit complete!
+    if (existingLoc.isEndpoint && r === targetEnd[0] && c === targetEnd[1]) {
+      currentPath.push([r, c]);
+      pairRoutes[activePairIdx].cells = currentPath.slice(1, -1);
+      pairRoutes[activePairIdx].complete = true;
+      activePairIdx = null;
+      isDragging = false;
+      currentPath = [];
+      movesCount++;
+      sound.circuitComplete();
+      checkLevelCompletion();
+      return;
+    }
+    return; // Cannot overwrite own visited path
+  }
+
+  // Open cell: push to path
+  currentPath.push([r, c]);
+  pairRoutes[activePairIdx].cells = currentPath.slice(1);
+  movesCount++;
+  sound.step();
+  if (movesCount >= 50) {
+    triggerHackedByAdriel("LATÊNCIA CRÍTICA EXCEDIDA (50+ MOVIMENTOS) // O OPERADOR ADRIEL ISOLOU O NÓ DE REDE", "startSimulation");
+    return;
+  }
+  renderPlayScreen();
+}
+
+function handleWindowMouseUp() {
+  if (isDragging && activePairIdx !== null) {
+    // If released without completing, keep partial route or clear
+    isDragging = false;
+  }
+}
+
+function handleMouseLeaveGrid() {
+  if (isDragging) {
+    isDragging = false;
+  }
+}
+
+function checkLevelCompletion() {
+  const level = LEVELS[currentLevelIdx];
+  const allComplete = Object.values(pairRoutes).every(r => r.complete);
+  if (allComplete) {
+    sound.levelComplete();
+    totalMovesCount += movesCount;
+    levelOverlay = true;
+    renderPlayScreen();
+  } else {
+    renderPlayScreen();
+  }
+}
+
+function nextLevel() {
+  sound.click();
+  if (currentLevelIdx < LEVELS.length - 1) {
+    currentLevelIdx++;
+    initLevel(currentLevelIdx);
+    renderPlayScreen();
+  } else {
+    currentScreen = 'complete';
+    render();
+  }
+}
+
+function resetCurrentLevel() {
+  sound.click();
+  initLevel(currentLevelIdx);
+  renderPlayScreen();
+}
+
+
+// --- CYBERPUNK NARRATIVE MECHANICS: HACKED BY ADRIEL & HONEYPOT VICTORY ---
+let honeypotTimerId = null;
+
+function playHackAlarmSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(480, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch(e) {}
+}
+
+function playHoneypotWinSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [440, 554.37, 659.25, 880].forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const t = ctx.currentTime + i * 0.12;
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.35);
+    });
+  } catch(e) {}
+}
+
+function triggerHackedByAdriel(reason, restartFnName) {
+  playHackAlarmSound();
+  if (typeof levelTimerInterval !== 'undefined' && levelTimerInterval) clearInterval(levelTimerInterval);
+  if (typeof timerInterval !== 'undefined' && timerInterval) clearInterval(timerInterval);
+  if (typeof timerId !== 'undefined' && timerId) clearInterval(timerId);
+  if (typeof gameLoopId !== 'undefined' && gameLoopId) cancelAnimationFrame(gameLoopId);
+
+  const targetEl = document.getElementById('app') || document.querySelector('.hud-box') || document.body;
+  targetEl.innerHTML = `
+    <div style="border:2px solid #8C1D18;background:#100405;padding:32px 20px;border-radius:4px;box-shadow:0 0 35px rgba(140,29,24,0.5);text-align:center;max-width:760px;margin:20px auto;font-family:'Space Mono','Consolas',monospace;">
+      <div style="font-size:0.85rem;color:#D4AF37;letter-spacing:3px;margin-bottom:8px;">⚠️ ALERTA DE SEGURANÇA // SISTEMA INTERCEPTADO</div>
+      <div style="font-size:2.2rem;color:#FF003C;font-weight:bold;margin-bottom:8px;text-shadow:0 0 15px rgba(255,0,60,0.6);">💀 VOCÊ FOI HACKEADO POR ADRIEL</div>
+      <div style="font-size:0.8rem;color:#8C1D18;letter-spacing:2px;margin-bottom:18px;">COUNTER-MEASURE INJECTED // INTRUSION COMPROMISED</div>
+
+      <div style="background:#030305;border:1px solid #8C1D18;padding:16px;text-align:left;font-size:0.8rem;color:#E0E7FF;line-height:1.7;margin:15px auto 25px;max-width:560px;">
+        <div style="color:#FF003C;font-weight:bold;">> [CRITICAL_FAULT]: ${reason}</div>
+        <div>> INVASOR: Terminal externo desautenticado.</div>
+        <div>> CONTRAMEDIDA: Injeção de payload reverso executada com sucesso.</div>
+        <div>> OPERADOR DO SISTEMA: <strong style="color:#D4AF37;">Adriel Hipolito</strong> [FULLSTACK_DEVELOPER]</div>
+        <div style="color:#64748B;">> STATUS: Sessão interceptada e confinada ao Sandbox corporativo.</div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <button class="btn" onclick="${restartFnName}()">[ 🔄 REINICIAR TERMINAL & TENTAR NOVAMENTE ]</button>
+        <button class="btn btn-secondary" onclick="window.location.href='https://github.com/adrielhs'">[ 🏃 RETORNAR AO PERFIL COM VIDA ]</button>
+      </div>
+    </div>
+  `;
+}
+
+function triggerHoneypotVictory(prizeTitle, projectName, projectUrl, restartFnName) {
+  playHoneypotWinSound();
+  if (typeof levelTimerInterval !== 'undefined' && levelTimerInterval) clearInterval(levelTimerInterval);
+  if (typeof timerInterval !== 'undefined' && timerInterval) clearInterval(timerInterval);
+  if (typeof timerId !== 'undefined' && timerId) clearInterval(timerId);
+  if (typeof gameLoopId !== 'undefined' && gameLoopId) cancelAnimationFrame(gameLoopId);
+
+  let timeLeft = 5;
+  const targetEl = document.getElementById('app') || document.querySelector('.hud-box') || document.body;
+  targetEl.innerHTML = `
+    <div style="border:2px solid #D4AF37;background:#060710;padding:32px 20px;border-radius:4px;box-shadow:0 0 35px rgba(212,175,55,0.25);text-align:center;max-width:760px;margin:20px auto;font-family:'Space Mono','Consolas',monospace;">
+      <div style="color:#00FF66;font-size:0.85rem;letter-spacing:2px;margin-bottom:6px;">★ [ACESSO NÍVEL ARCHON CONCEDIDO]</div>
+      <div style="font-size:2rem;color:#D4AF37;font-weight:bold;margin-bottom:6px;text-shadow:0 0 15px rgba(212,175,55,0.4);">🎁 RECOMPENSA DESCRIPTOGRAFADA!</div>
+      <div style="font-size:1.1rem;color:#F5F0E8;font-weight:bold;margin-bottom:18px;">${prizeTitle}</div>
+
+      <div style="background:#030305;border:1px solid #D4AF37;padding:18px;text-align:left;font-size:0.8rem;color:#E0E7FF;line-height:1.7;margin:15px auto 25px;max-width:580px;">
+        <div style="color:#00FF66;">> PAYLOAD_STATUS: RECOMPENSA VALIDADA E LIBERADA.</div>
+        <div style="color:#FF003C;font-weight:bold;margin:4px 0;">⚠️ ALERTA DE SEGURANÇA: O PAYLOAD É UM HONEYPOT CORPORATIVO!</div>
+        <div style="color:#94A3B8;">Você achou que estava apenas jogando um minigame isolado...</div>
+        <div>O arquivo premiado disparou uma rotina de extração automática para o núcleo real do projeto:</div>
+        <div style="color:#D4AF37;font-weight:bold;margin:8px 0;font-size:0.95rem;">► PROJETO ATRELADO: ${projectName}</div>
+        <div style="color:#F5F0E8;">Redirecionando sua sessão em <span id="honeypot-sec" style="color:#00FF66;font-weight:bold;font-size:1.2rem;">5</span> segundos...</div>
+        <div style="width:100%;height:4px;background:#1E293B;margin-top:10px;"><div id="honeypot-bar" style="width:100%;height:100%;background:#D4AF37;transition:width 5s linear;"></div></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <a href="${projectUrl}" class="btn" style="text-decoration:none;">[ 🚀 ENTRAR NO PROJETO AGORA (PULAR TIMER) ]</a>
+        <button class="btn btn-secondary" onclick="cancelHoneypot('${restartFnName}')">[ 🛑 CANCELAR & JOGAR NOVAMENTE ]</button>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const bar = document.getElementById('honeypot-bar');
+    if (bar) bar.style.width = '0%';
+  }, 50);
+
+  honeypotTimerId = setInterval(() => {
+    timeLeft--;
+    const secEl = document.getElementById('honeypot-sec');
+    if (secEl) secEl.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(honeypotTimerId);
+      window.location.href = projectUrl;
+    }
+  }, 1000);
+}
+
+function cancelHoneypot(restartFnName) {
+  if (honeypotTimerId) clearInterval(honeypotTimerId);
+  if (typeof window[restartFnName] === 'function') {
+    window[restartFnName]();
+  }
+}
+
+function renderEndScreen() {
+  triggerHoneypotVictory("O CÓDIGO GÊNESE DO ARQUITETO (PROJETOS INICIAIS REPO)", "Projetos Iniciais", "https://github.com/adrielhs/Projetos-Iniciais", "startSimulation");
+}
+
+function renderEndScreenOld() {
+  app().innerHTML = `
+    <div class="brand-header">
+      <div class="brand-title">SIGNAL ROUTE // ARCHITECTURE COMPLETE</div>
+      <div class="brand-sub">ALL CIRCUITS VERIFIED</div>
+    </div>
+    <div class="screen">
+      <h2>◼ NETWORK TOPOLOGY FULLY SECURED</h2>
+      <div class="score-banner">5 / 5</div>
+      <p>All planar circuit configurations have been established without signal degradation or coordinate collision.<br>
+      Total routing operations expended: <strong style="color:var(--amber);">${totalMovesCount} moves</strong>.<br>
+      Signal routing connection to <strong style="color:var(--ivory);">Projetos Iniciais</strong> verified sovereign and stable.</p>
+
+      <div class="briefing-box" style="text-align:center;max-width:440px;margin:20px auto 30px;">
+        <div>SYSTEM STATUS: <strong style="color:var(--amber);">OPERATIONAL // 100%</strong></div>
+        <div>LEVELS CLEARED: <strong style="color:var(--ivory);">3×3, 4×4, 5×5, 6×6, 7×7</strong></div>
+        <div>INTEGRITY AUDIT: <strong style="color:var(--amber);">PASSED</strong></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+        <button class="btn" onclick="startSimulation()">[ RUN SIMULATION AGAIN ]</button>
+        <button class="btn btn-secondary" onclick="window.location.href='https://github.com/adrielhs'">[ RETURN TO PROFILE ]</button>
+      </div>
+    </div>
+  `;
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>

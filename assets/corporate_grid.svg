@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" width="900" height="300">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap');
+
+      .label-main { font-family: 'Space Mono', 'Consolas', monospace; font-size: 22px; font-weight: 700; fill: #F5F0E8; letter-spacing: 3px; }
+      .label-sub  { font-family: 'Space Mono', 'Consolas', monospace; font-size: 11px; fill: #D4AF37; letter-spacing: 4px; }
+      .label-dim  { font-family: 'Space Mono', 'Consolas', monospace; font-size: 9px;  fill: #64748B; letter-spacing: 2px; }
+
+      @keyframes drawLine1 {
+        0%   { stroke-dashoffset: 600; opacity: 0.3; }
+        30%  { stroke-dashoffset: 0;   opacity: 1; }
+        70%  { stroke-dashoffset: 0;   opacity: 1; }
+        100% { stroke-dashoffset: 600; opacity: 0.3; }
+      }
+      @keyframes drawLine2 {
+        0%   { stroke-dashoffset: 400; opacity: 0.2; }
+        40%  { stroke-dashoffset: 0;   opacity: 0.8; }
+        80%  { stroke-dashoffset: 0;   opacity: 0.8; }
+        100% { stroke-dashoffset: 400; opacity: 0.2; }
+      }
+      @keyframes drawLine3 {
+        0%   { stroke-dashoffset: 300; opacity: 0.15; }
+        50%  { stroke-dashoffset: 0;   opacity: 0.6; }
+        90%  { stroke-dashoffset: 0;   opacity: 0.6; }
+        100% { stroke-dashoffset: 300; opacity: 0.15; }
+      }
+      @keyframes pulse-sigil {
+        0%,100% { opacity: 0.7; stroke-width: 1; }
+        50%     { opacity: 1;   stroke-width: 1.5; }
+      }
+      @keyframes scan {
+        0%   { transform: translateY(0); }
+        100% { transform: translateY(300px); }
+      }
+      @keyframes dot-travel-h {
+        0%   { offset-distance: 0%; opacity: 0; }
+        5%   { opacity: 1; }
+        95%  { opacity: 1; }
+        100% { offset-distance: 100%; opacity: 0; }
+      }
+
+      .route-primary { stroke-dasharray: 600; animation: drawLine1 8s ease-in-out infinite; }
+      .route-secondary { stroke-dasharray: 400; animation: drawLine2 10s ease-in-out 2s infinite; }
+      .route-tertiary { stroke-dasharray: 300; animation: drawLine3 12s ease-in-out 4s infinite; }
+      .sigil-ring { animation: pulse-sigil 6s ease-in-out infinite; }
+    </style>
+
+    <!-- Scanline pattern -->
+    <pattern id="scanlines" x="0" y="0" width="2" height="3" patternUnits="userSpaceOnUse">
+      <rect width="2" height="1" fill="#F5F0E8" opacity="0.025"/>
+    </pattern>
+
+    <!-- Sigil clip -->
+    <clipPath id="sigil-clip">
+      <polygon points="150,90 200,65 250,90 250,160 200,185 150,160"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="300" fill="#030305"/>
+
+  <!-- Subtle panel depth on left -->
+  <rect x="0" y="0" width="320" height="300" fill="#0A0B10" opacity="0.5"/>
+
+  <!-- ── NETWORK ROUTING LINES ── -->
+  <!-- Primary amber horizontal spine -->
+  <path class="route-primary" d="M 60 150 H 290 V 100 H 440 V 200 H 560 V 130 H 700"
+        fill="none" stroke="#D4AF37" stroke-width="0.8" opacity="0.9"/>
+
+  <!-- Secondary crimson branch -->
+  <path class="route-secondary" d="M 80 200 H 180 V 80 H 350 V 220 H 500"
+        fill="none" stroke="#8C1D18" stroke-width="0.6" opacity="0.7"/>
+
+  <!-- Tertiary grid lines -->
+  <path class="route-tertiary" d="M 700 80 V 220 M 440 50 V 250"
+        fill="none" stroke="#D4AF37" stroke-width="0.4" opacity="0.4"/>
+
+  <!-- Static faint grid at far right -->
+  <line x1="760" y1="60"  x2="880" y2="60"  stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="760" y1="100" x2="880" y2="100" stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="760" y1="140" x2="880" y2="140" stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="760" y1="180" x2="880" y2="180" stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="760" y1="220" x2="880" y2="220" stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="760" y1="60"  x2="760" y2="240" stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="820" y1="60"  x2="820" y2="240" stroke="#1E293B" stroke-width="0.5"/>
+  <line x1="880" y1="60"  x2="880" y2="240" stroke="#1E293B" stroke-width="0.5"/>
+
+  <!-- ── CORPORATE SIGIL (center-left) ── -->
+  <!-- Outer hexagon frame -->
+  <polygon class="sigil-ring"
+           points="200,70 248,97 248,151 200,178 152,151 152,97"
+           fill="none" stroke="#D4AF37" stroke-width="1.2" opacity="0.85"/>
+  <!-- Inner hexagon -->
+  <polygon points="200,88 234,107 234,145 200,164 166,145 166,107"
+           fill="none" stroke="#8C1D18" stroke-width="0.8" opacity="0.6"/>
+  <!-- Cross-hair intersects -->
+  <line x1="200" y1="70" x2="200" y2="178" stroke="#D4AF37" stroke-width="0.4" opacity="0.3"/>
+  <line x1="152" y1="124" x2="248" y2="124" stroke="#D4AF37" stroke-width="0.4" opacity="0.3"/>
+  <!-- Center diamond -->
+  <polygon points="200,110 216,124 200,138 184,124"
+           fill="#8C1D18" opacity="0.25" stroke="#D4AF37" stroke-width="0.8"/>
+  <!-- Center dot -->
+  <circle cx="200" cy="124" r="3" fill="#D4AF37" opacity="0.9"/>
+
+  <!-- Corner node dots on routing -->
+  <circle cx="290" cy="150" r="2.5" fill="#D4AF37" opacity="0.7"/>
+  <circle cx="440" cy="100" r="2"   fill="#8C1D18" opacity="0.8"/>
+  <circle cx="560" cy="200" r="2"   fill="#D4AF37" opacity="0.6"/>
+  <circle cx="700" cy="130" r="2.5" fill="#D4AF37" opacity="0.7"/>
+  <circle cx="350" cy="80"  r="1.5" fill="#8C1D18" opacity="0.5"/>
+
+  <!-- ── TYPOGRAPHY (right zone) ── -->
+  <!-- Separator line -->
+  <line x1="470" y1="70" x2="470" y2="252" stroke="#1E293B" stroke-width="0.8"/>
+
+  <text x="490" y="120" class="label-main">FULL-STACK</text>
+  <text x="490" y="148" class="label-main">DEVELOPMENT</text>
+  <text x="490" y="172" class="label-sub">SYSTEMS &amp; APPLICATIONS GRID</text>
+  <text x="490" y="196" class="label-dim">DEV // ADRIEL-HIPOLITO // BUILD · LEARN · EVOLVE</text>
+  <text x="490" y="218" class="label-dim">SIGNAL ROUTE: BACKEND → FRONTEND → IOT</text>
+  <text x="490" y="240" class="label-dim">INFRASTRUCTURE V3.0 // 2026.Q4 // SYSTEM ACTIVE</text>
+
+  <!-- Top HUD bar -->
+  <rect x="0" y="0" width="900" height="24" fill="#0A0B10"/>
+  <line x1="0" y1="24" x2="900" y2="24" stroke="#1E293B" stroke-width="0.8"/>
+  <text x="16" y="16" font-family="'Space Mono', 'Consolas', monospace" font-size="9" fill="#64748B" letter-spacing="2">CORP // INFRASTRUCTURE GRID</text>
+  <text x="700" y="16" font-family="'Space Mono', 'Consolas', monospace" font-size="9" fill="#8C1D18" letter-spacing="1">STATUS: DEVELOPMENT EVOLVING</text>
+
+  <!-- Bottom HUD bar -->
+  <rect x="0" y="277" width="900" height="23" fill="#0A0B10"/>
+  <line x1="0" y1="277" x2="900" y2="277" stroke="#1E293B" stroke-width="0.8"/>
+  <text x="16" y="291" font-family="'Space Mono', 'Consolas', monospace" font-size="8" fill="#64748B" letter-spacing="1">NETWORK NODE: ADRIEL-HIPOLITO // FULL-STACK DEVELOPER // LEARNING MODE: ACTIVE</text>
+
+  <!-- Scanline overlay -->
+  <rect x="0" y="24" width="900" height="253" fill="url(#scanlines)"/>
+</svg>
