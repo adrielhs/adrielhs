@@ -68,7 +68,7 @@ Projetos Iniciais ────► Template Fastify ────► Humidity Sens
 | :--- | :--- | :---: |
 | **Signal Route** | Mapeie o caminho correto entre os nós sem cruzar rotas. Vinculado a **Projetos Iniciais**. | [![PLAY](https://img.shields.io/badge/PLAY_ONLINE-030305?style=for-the-badge&logo=target&logoColor=D4AF37)](https://adrielhs.github.io/adrielhs/minigame/signal-route/)<br>[<sub style="color:#64748B;">código fonte</sub>](./minigame/signal-route/index.html) |
 | **Task Triage** | Priorize o backlog antes do colapso operacional. Vinculado ao **ADM-SI**. | [![OPEN](https://img.shields.io/badge/OPEN_CONTROL_ROOM-030305?style=for-the-badge&logo=target&logoColor=D4AF37)](https://adrielhs.github.io/adrielhs/minigame/task-triage/)<br>[<sub style="color:#64748B;">código fonte</sub>](./minigame/task-triage/index.html) |
-| **Color Protocol** | Reconstrua composições visuais por canais RGB. Vinculado ao **VSD Portfolio**. | [![ENTER](https://img.shields.io/badge/ENTER_VISUAL_GRID-030305?style=for-the-badge&logo=target&logoColor=D4AF37)](https://adrielhs.github.io/adrielhs/minigame/color-protocol/)<br>[<sub style="color:#64748B;">código fonte</sub>](./minigame/color-protocol/index.html) |
+| **Color Protocol** | Reconstrua composições visuais por canais RGB. Vinculado ao **Computer Vision Detector**. | [![ENTER](https://img.shields.io/badge/ENTER_VISUAL_GRID-030305?style=for-the-badge&logo=target&logoColor=D4AF37)](https://adrielhs.github.io/adrielhs/minigame/color-protocol/)<br>[<sub style="color:#64748B;">código fonte</sub>](./minigame/color-protocol/index.html) |
 | **Audio Breach** | Sincronize frequência, ritmo e sinal via Web Audio API. Vinculado ao **Cassino Reverso**. | [![ACCESS](https://img.shields.io/badge/ACCESS_CASSINO_CORE-030305?style=for-the-badge&logo=target&logoColor=D4AF37)](https://adrielhs.github.io/adrielhs/minigame/audio-breach/)<br>[<sub style="color:#64748B;">código fonte</sub>](./minigame/audio-breach/index.html) |
 
 ---
@@ -108,3 +108,22 @@ Projetos Iniciais ────► Template Fastify ────► Humidity Sens
 <div align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:030305,50:8C1D18,100:D4AF37&height=90&section=footer" alt="Adriel Systems Grid" />
 </div>
+
+---
+
+## 🤝 [ 08 // CRÉDITOS & ATRIBUIÇÃO ]
+
+> Identidade visual do perfil (banner SVG, mapa de rede animado e hub de minigames) adaptada de
+> **[VictorRamosHC/VictorRamosHC](https://github.com/VictorRamosHC/VictorRamosHC)** — projeto original do meu amigo **Victor Hugo**.
+> O layout, a paleta e a narrativa foram retrabalhados para refletir o meu próprio portfólio,
+> mas o crédito pela base de design e pelos minigames é do autor original.
+
+| Item | Autor original | Adaptação |
+| :--- | :--- | :--- |
+| Banner `corporate_grid.svg` | Victor Hugo | Texto, tipografia e status reescritos para a minha stack |
+| Mapa `network_map.svg` | Victor Hugo | Nós substituídos pelos meus projetos e pela minha linha de evolução |
+| Hub + 4 minigames | Victor Hugo | Links de destino trocados pelos meus repositórios e deploys |
+| Conteúdo do README | Adriel Hipolito | Reescrito com os meus projetos, badges e telemetria |
+
+---
+
